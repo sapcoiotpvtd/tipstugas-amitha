@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "804899900246",
+    "firebase_url": "https://tipstugas-app.firebaseio.com",
+    "project_id": "tipstugas-app",
+    "storage_bucket": "tipstugas-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:804899900246:android:9f4737d81ddda03d8ce4f7",
+        "android_client_info": {
+          "package_name": "com.tips.tugas.pt"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "804899900246-j6omi60fl7dqpc1mrn0vt8v77clrltop.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyjZG6x10G8ES82HqyaFgnPXXccrZ4vKs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "804899900246-j6omi60fl7dqpc1mrn0vt8v77clrltop.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
