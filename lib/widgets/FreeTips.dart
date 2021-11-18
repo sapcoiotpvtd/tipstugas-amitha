@@ -32,14 +32,13 @@ class _FreeTipsState extends State<FreeTips>
 
 	Widget body()
 	{
-		print(this.freeList);
-
 		return Container
 		(
-			margin: EdgeInsets.only(top: 20),
+			padding: EdgeInsets.all(2),
+			margin: EdgeInsets.only(top: 20, bottom: 10),
 			child: ListView.builder
 			(
-				itemCount: 3,
+				itemCount: freeList.length,
 				itemBuilder: (BuildContext context, int index)
 				{
 					return Stack
@@ -49,7 +48,8 @@ class _FreeTipsState extends State<FreeTips>
 							Container
 							(
 								margin: EdgeInsets.only(top: 5, left: 25, right: 5, bottom: 15),
-								height: 120,
+								// height: 220,
+								padding: EdgeInsets.all(25),
 								decoration: BoxDecoration
 								(
 									color: Colors.white,
@@ -64,17 +64,19 @@ class _FreeTipsState extends State<FreeTips>
 											offset: Offset(0, 2), // changes position of shadow
 										)
 									]
-								)
-							),
-							Positioned
-							(
-								top: 15,
-								left: 70,
+								),
+							// 	child:
+							// ),
+							// Positioned
+							// (
+							// 	top: 15,
+							// 	left: 70,
 								child: Container
 								(
-									width: 250,
-									margin: EdgeInsets.all(10),
-									height: 100,
+									// width: 250,
+									// margin: EdgeInsets.all(10),
+									padding: EdgeInsets.only(left: 50),
+									// height: 100,
 									color: Colors.white,
 									child: Column
 									(
@@ -133,56 +135,68 @@ class _FreeTipsState extends State<FreeTips>
 														),
 													),
 													SizedBox(width: 5),
-													this.freeList[index]["paid"] == "" ? SizedBox.shrink() : Container
-													(
-														padding: EdgeInsets.all(5),
-														decoration: BoxDecoration
-														(
-															borderRadius: BorderRadius.circular(15),
-															color: Color(int.parse("0xff07AFFB"))
-														),
-														child: Text
-														(
-															this.freeList[index]["paid"],
-															style: GoogleFonts.ibmPlexSans
-															(
-																fontWeight: FontWeight.w500,
-																color: Colors.white,
-																fontSize: 12,
-															),
-														),
-													),
-													SizedBox(width: 5),
-													this.freeList[index]["status"] == "" ? SizedBox.shrink() : Container
-													(
-														padding: EdgeInsets.all(5),
-														decoration: BoxDecoration
-														(
-															borderRadius: BorderRadius.circular(15),
-															color: Colors.green
-														),
-														child: Text
-														(
-															this.freeList[index]["status"],
-															style: GoogleFonts.ibmPlexSans
-															(
-																fontWeight: FontWeight.w500,
-																color: Colors.white,
-																fontSize: 12,
-															),
-														),
-													)
 												]
-											)
+											),
+											SizedBox(height: 25)
 										]
 									)
 								)
 							),
 							Positioned
 							(
-								child: Column
+								bottom: 45,
+								left: 40,
+								child: Row
 								(
 									children: 
+									[
+										this.freeList[index]["paid"] == "" ? SizedBox.shrink() : Container
+										(
+											padding: EdgeInsets.all(5),
+											decoration: BoxDecoration
+											(
+												borderRadius: BorderRadius.circular(15),
+												color: Color(int.parse("0xff07AFFB"))
+											),
+											child: Text
+											(
+												this.freeList[index]["paid"],
+												style: GoogleFonts.ibmPlexSans
+												(
+													fontWeight: FontWeight.w500,
+													color: Colors.white,
+													fontSize: 12,
+												),
+											),
+										),
+										SizedBox(width: 5),
+										this.freeList[index]["status"] == "" ? SizedBox.shrink() : Container
+										(
+											padding: EdgeInsets.all(5),
+											decoration: BoxDecoration
+											(
+												borderRadius: BorderRadius.circular(15),
+												color: Colors.green
+											),
+											child: Text
+											(
+												this.freeList[index]["status"],
+												style: GoogleFonts.ibmPlexSans
+												(
+													fontWeight: FontWeight.w500,
+													color: Colors.white,
+													fontSize: 12,
+												),
+											),
+										)
+									],
+								)
+							),
+							Positioned
+							(
+								child: Column
+								(
+									children:
 									[
 										Container
 										(
@@ -191,13 +205,25 @@ class _FreeTipsState extends State<FreeTips>
 											width: 70,
 											child: Image.network(this.freeList[index]["imgURL"])
 										),
-										Text
+										Container
 										(
-											this.freeList[index]["odd"],
-											style: GoogleFonts.ibmPlexSans
-											(
-												fontSize: 14,
-											)
+											margin: EdgeInsets.only(left: 25, bottom: 5),
+											height: 70,
+											width: 70,
+										child: Flexible
+										(
+											child: 
+											// [
+												Text
+												(
+													this.freeList[index]["odd"],
+													style: GoogleFonts.ibmPlexSans
+													(
+														fontSize: 14,
+													)
+												)
+											// ],
+										)
 										)
 									]
 								)

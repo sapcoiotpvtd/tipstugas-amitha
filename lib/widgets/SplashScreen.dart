@@ -1,4 +1,5 @@
 // import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,21 +18,30 @@ class _SplashScreenState extends State<SplashScreen>
 	String messageTitle = "Empty";
 	String notificationAlert = "alert";
 	String messageDescription = "";
+	
+	bool _initialized = false;
+
+	Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+	// If you're going to use other Firebase services in the background, such as Firestore,
+	// make sure you call `initializeApp` before using other Firebase services.
+	await Firebase.initializeApp();
+
+	print("Handling a background message: ${message.messageId}");
+	}
 
 
 	@override 
 	void initState()
 	{
 		super.initState();
-		
+		FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 	}
 
 	Widget build(BuildContext context)
 	{
-
 		Future.delayed(Duration(seconds: 3), () 
 		{
-  			Navigator.push(context, MaterialPageRoute(builder: (_) => HomeScreen()));
+  			Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
 		});
 
 		return Scaffold
@@ -72,11 +82,27 @@ class _SplashScreenState extends State<SplashScreen>
 		);
 	}
 
-	firebaseInitialize()
+	firebaseInitialize() async
 	{
+		FirebaseMessaging messaging = FirebaseMessaging.instance;
 		print("Firebase initialized");
 
-		FirebaseMessaging messaging = FirebaseMessaging.instance;
+		NotificationSettings settings = await messaging.requestPermission
+		(
+			alert: true,
+			announcement: false,
+			badge: true,
+			carPlay: false,
+			criticalAlert: false,
+			provisional: false,
+			sound: true,
+		);
+
+
+		FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      	RemoteNotification? notification = message.notification;
+    //   showNotification(notification);
+});
 
 		// firebaseMessaging.configure
 		// (

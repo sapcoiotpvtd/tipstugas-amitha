@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:lottie/lottie.dart';
 import 'package:share_plus/share_plus.dart';
@@ -15,6 +16,7 @@ import 'package:tipstugas/Server.dart';
 import 'package:tipstugas/widgets/DirRecovered.dart';
 import 'package:tipstugas/widgets/FreeTips.dart';
 import 'package:tipstugas/widgets/Gudie.dart';
+import 'package:tipstugas/widgets/PremiumTips.dart';
 import 'package:tipstugas/widgets/RatingScreen.dart';
 import 'package:tipstugas/widgets/ResumoTips.dart';
 import 'package:tipstugas/widgets/appBar.dart';
@@ -56,20 +58,52 @@ class _HomeScreenState extends State<HomeScreen>
 	late StreamSubscription _conectionSubscription;
 
 	final InAppReview inAppReview = InAppReview.instance;
+	final InAppPurchase _inAppPurchase = InAppPurchase.instance;
 
-	 final List<String> _productIds = ['tips_app'];
+	late StreamSubscription<List<PurchaseDetails>> _subscription;
+
+	 List<IAPItem> items = [];
+
+	final List<String> _productLists =  ['threemonths','monthly',];
+	List<PurchasedItem> _purchases = [];
+	List<IAPItem> _items = [];
+	
 
 	@override
 	void initState()
 	{
     	super.initState();
+		initPlatformState();
+		_getPurchaseHistory();
+		getItems();
+		loadData();
+  	}
 
+	loadData()
+	{
 		getImages();
 		getPremiumTips();
 		getFreeTips();
 		getStrategyTips();
 		getResumoTips();
-  	}
+
+		print("got it");
+	}
+
+	void getItems() async 
+	{
+  		List<IAPItem> items = await FlutterInappPurchase.instance.getProducts(_productLists);
+
+		  print(items);
+		  print("PLAY CONSOLE ITEMS");
+  		// for (var item in items)
+  		// {
+      	// 	this._items.add(item);
+	  	// 	print("----------------------");
+    	// 	print('${item.toString()}');
+    	// 	// this._items.add(item);
+  		// }
+	}
 
 	@override
 	void dispose()
@@ -93,6 +127,8 @@ class _HomeScreenState extends State<HomeScreen>
 		// prepare
 		var result = await FlutterInappPurchase.instance.initConnection;
 		print('result: $result');
+
+    	items = await FlutterInappPurchase.instance.getSubscriptions(_productLists);
 
 		// If the widget was removed from the tree while the asynchronous platform
 		// message was in flight, we want to discard the reply rather than calling
@@ -133,25 +169,57 @@ class _HomeScreenState extends State<HomeScreen>
 
 	void _requestPurchase() async
 	{
-    	List<IAPItem> items = await FlutterInappPurchase.instance.getSubscriptions(_productIds);
-
-		// var x = FlutterInappPurchase.instance.requestPurchase("tips_app");
-		print(items);
-		print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+		try
+		{
+			var x = FlutterInappPurchase.instance.requestPurchase("monthly");
+		}
+		catch(e)
+		{
+			print(e);
+		}
 	}
+
+	void _getPurchaseHistory() async
+	{
+		print("PURCHASE HISTORY");
+
+    	List<PurchasedItem>? items = await FlutterInappPurchase.instance.getPurchaseHistory();
+    	for (var item in items!)
+		{
+      		print('${item.toString()}');
+      		this._purchases.add(item);
+    	}
+
+    	setState(()
+		{
+			// this._items = [];
+			this._purchases = items;
+    	});
+  	}
 
 	Widget build(BuildContext context)
 	{
-		return Scaffold
+		getItems();
+		return RefreshIndicator
 		(
-			backgroundColor: Colors.blue[100],
-			appBar: appBarImage == null ? AppBar(backgroundColor: Colors.grey[400]) : appBar(appBarImage["hometext"], context, true),
-			body: Container
+			onRefresh: ()
+			{
+				return Future.delayed(Duration(seconds: 3), ()
+				{
+					loadData();
+				});
+			},
+			child: Scaffold
 			(
-				color: Colors.blue[100],
-				child: isLoading ? Center(child: CircularProgressIndicator()) : body(),
-			),
-			bottomNavigationBar: bottomNavigationBar(context),
+				backgroundColor: Colors.blue[100],
+				appBar: appBarImage == null ? AppBar(backgroundColor: Colors.grey[400]) : appBar(appBarImage["hometext"], context, true),
+				body: Container
+				(
+					color: Colors.blue[100],
+					child: isLoading ? Center(child: CircularProgressIndicator()) : body(),
+				),
+				bottomNavigationBar: bottomNavigationBar(context),
+			)
 		);
 	}
 
@@ -222,7 +290,14 @@ class _HomeScreenState extends State<HomeScreen>
 											// print(carouselList[index]["status"]);
 
 											case "premium":
-												premiumTips(context);
+												if(this._purchases == null)
+												{
+													premiumTips(context);
+												} 
+												else
+												{
+													Navigator.push(context, MaterialPageRoute(builder: (context) => PremiumTips(premiumList)));
+												}
 												break;
 
 											case "free":
@@ -777,73 +852,74 @@ class _HomeScreenState extends State<HomeScreen>
 					ListTile
 					(
 						title: Text("Mensal - €14.99 EU"),
-						// leading: Radio
-						// (
-						// 	value: 0,
-						// 	groupValue: val,
-						// 	onChanged: (value)
-						// 	{
-						// 		_handleRadioValueChange(int.parse(value.toString()));
-						// 	},
-						// 	activeColor: Colors.green,
-						// ),
+						leading: Radio
+						(
+							value: 0,
+							groupValue: val,
+							onChanged: (value)
+							{
+								// _handleRadioValueChange(int.parse(value.toString()));
+							},
+							activeColor: Colors.green,
+						),
 					),
 					ListTile
 					(
 						title: Text("Trimestral - €29.99 EU"),
-						// leading: Radio
-						// (
-						// 	value: 1,
-						// 	groupValue: val,
-						// 	onChanged: (value)
-						// 	{
-						// 		_handleRadioValueChange(int.parse(value.toString()));
-						// 	},
-						// 	activeColor: Colors.green,
-						// ),
+						leading: Radio
+						(
+							value: 1,
+							groupValue: val,
+							onChanged: (value)
+							{
+								// _handleRadioValueChange(int.parse(value.toString()));
+							},
+							activeColor: Colors.green,
+						),
 					),
-					// Row
-					// (
-					// 	mainAxisAlignment: MainAxisAlignment.end,
-					// 	children:
-					// 	[
-					// 		GestureDetector
-					// 		(
-					// 			child: Text
-					// 			(
-					// 				"CANCELAR",
-					// 				style: GoogleFonts.ibmPlexSans
-					// 				(
-					// 					fontWeight: FontWeight.w500,
-					// 					color: Colors.blue,
-					// 					fontSize: 12,
-					// 				),
-					// 			),
-					// 			onTap: ()
-					// 			{
-					// 				Navigator.pop(context);
-					// 			}
-					// 		),
-					// 		SizedBox(width: 10),
-					// 		GestureDetector
-					// 		(
-					// 			child: Text
-					// 			(
-					// 				"CONTINUAR",
-					// 				style: GoogleFonts.ibmPlexSans
-					// 				(
-					// 					fontWeight: FontWeight.w500,
-					// 					color: Colors.blue,
-					// 					fontSize: 12,
-					// 				),
-					// 			),
-					// 			onTap: ()
-					// 			{
-					// 				this._requestPurchase();
-					// 			}
-					// 		)
-					// 	],
-					// )
+					Row
+					(
+						mainAxisAlignment: MainAxisAlignment.end,
+						children:
+						[
+							GestureDetector
+							(
+								child: Text
+								(
+									"CANCELAR",
+									style: GoogleFonts.ibmPlexSans
+									(
+										fontWeight: FontWeight.w500,
+										color: Colors.blue,
+										fontSize: 12,
+									),
+								),
+								onTap: ()
+								{
+									Navigator.pop(context);
+								}
+							),
+							SizedBox(width: 10),
+							GestureDetector
+							(
+								child: Text
+								(
+									"CONTINUAR",
+									style: GoogleFonts.ibmPlexSans
+									(
+										fontWeight: FontWeight.w500,
+										color: Colors.blue,
+										fontSize: 12,
+									),
+								),
+								onTap: ()
+								{
+									// _getPurchaseHistory();
+									this._requestPurchase();
+								}
+							)
+						],
+					)
 				],
 			),
 		);
@@ -858,7 +934,6 @@ class _HomeScreenState extends State<HomeScreen>
 			}
 		);
 	}
-
 
 	_launchDirURL() async
 	{
@@ -922,6 +997,8 @@ class _HomeScreenState extends State<HomeScreen>
 
 	getPremiumTips() async
 	{
+		premiumList.clear();
+
 		var response = await Server.premiumTips();
 
 		if(response["status"] == "true")
@@ -939,6 +1016,8 @@ class _HomeScreenState extends State<HomeScreen>
 
 	getFreeTips() async
 	{
+		freeList.clear();
+
 		var response = await Server.freeTips();
 
 		if(response["status"] == "true")
@@ -957,6 +1036,8 @@ class _HomeScreenState extends State<HomeScreen>
 
 	getStrategyTips() async
 	{
+		strategyList.clear();
+
 		var response = await Server.strategyTips();
 
 		if(response["status"] == "true")
@@ -975,6 +1056,8 @@ class _HomeScreenState extends State<HomeScreen>
 
 	getResumoTips() async
 	{
+		resumoList.clear();
+
 		var response = await Server.resumoTips();
 
 		if(response["status"] == "true")
@@ -995,6 +1078,9 @@ class _HomeScreenState extends State<HomeScreen>
 	getImages() async
 	{
 		socialMediaList.clear();
+		carouselList.clear();
+		bannerImage = null;
+		appBarBackgroundImage = null;
 
 		var response = await Server.images();
 

@@ -23,6 +23,8 @@ class Server
 
 	static freeTips() async
 	{
+		print(API.freeTips);
+		
 		try
 		{
 			var response = await http.get(Uri.parse(API.freeTips));
