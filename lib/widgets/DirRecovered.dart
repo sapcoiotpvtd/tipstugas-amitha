@@ -28,7 +28,7 @@ class _DirRecoveredState extends State<DirRecovered>
 			backgroundColor: Colors.white,
 			appBar: appBar("Strategy Tips", context, false),
 			body: body(),
-			bottomSheet: bottomNavigationBar(context),
+			// bottomSheet: bottomNavigationBar(context),
 		);
   	}
 

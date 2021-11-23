@@ -1,8 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tipstugas/global.dart';
+import 'package:tipstugas/widgets/Gudie.dart';
 import 'package:tipstugas/widgets/utilities/BottomNavigationbar.dart';
 import 'package:tipstugas/widgets/utilities/CustomAppbar.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
 
 class PremiumTips extends StatefulWidget
 {
@@ -25,8 +29,44 @@ class _PremiumTipsState extends State<PremiumTips>
 		(
 			backgroundColor: Colors.white,
 			appBar: appBar("Premium Tips", context, false),
-			body: body(),
-			bottomSheet: bottomNavigationBar(context),
+			body: Container
+			(
+				child: SingleChildScrollView
+				(
+					child: Column
+					(
+						crossAxisAlignment: CrossAxisAlignment.start,
+						children:
+						[
+							telegramData != null ? Padding
+							(
+								padding: EdgeInsets.all(10),
+								child: OutlinedButton
+								(
+									onPressed: ()
+									{
+										Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen(telegramData["telegramBought"], "Telegram")));
+									},
+									style: ButtonStyle
+									(
+										backgroundColor: MaterialStateProperty.all(Colors.blue[400])
+									),
+									child: Text
+									(
+										'Telegram Channel',
+										style: TextStyle(fontSize: 15, color: Colors.white),
+									),
+								)
+							) : SizedBox.shrink(),
+							Column
+							(
+								children: this.rows()
+							)
+						],
+					)
+				)
+			),
+			// bottomSheet: bottomNavigationBar(context),
 		);
   	}
 
@@ -35,203 +75,247 @@ class _PremiumTipsState extends State<PremiumTips>
 		return Container
 		(
 			padding: EdgeInsets.all(2),
-			margin: EdgeInsets.only(top: 20, bottom: 10),
-			child: ListView.builder
+			margin: EdgeInsets.only(top: 20, bottom: 100),
+			child:ListView.builder
 			(
 				itemCount: premiumList.length,
 				itemBuilder: (BuildContext context, int index)
 				{
-					return Stack
+					return Card
 					(
-						children:
-						[
-							Container
+						child: ListTile
+						(
+							leading: Image.network(premiumList[index]["imgURL"]),
+							title: Text
 							(
-								margin: EdgeInsets.only(top: 5, left: 25, right: 5, bottom: 15),
-								// height: 220,
-								padding: EdgeInsets.all(25),
-								decoration: BoxDecoration
+								this.premiumList[index]["league"],
+								style: GoogleFonts.ibmPlexSans
 								(
-									color: Colors.white,
-									borderRadius: BorderRadius.circular(10),
-									boxShadow:
-									[
-										BoxShadow
-										(
-											color: Colors.grey.withOpacity(0.5),
-											spreadRadius: 5,
-											blurRadius: 10,
-											offset: Offset(0, 2), // changes position of shadow
-										)
-									]
+									fontSize: 14,
 								),
-							// 	child:
-							// ),
-							// Positioned
-							// (
-							// 	top: 15,
-							// 	left: 70,
-								child: Container
-								(
-									// width: 250,
-									// margin: EdgeInsets.all(10),
-									padding: EdgeInsets.only(left: 50),
-									// height: 100,
-									color: Colors.white,
-									child: Column
+							),
+							subtitle: Column
+							(
+								crossAxisAlignment: CrossAxisAlignment.start,
+								children:
+								[
+									Text
+									(
+										this.premiumList[index]["matchh"],
+										style: GoogleFonts.ibmPlexSans
+										(
+											fontWeight: FontWeight.w500,
+											fontSize: 14,
+										),
+									),
+									Text
+									(
+										this.premiumList[index]["tip"],
+										style: GoogleFonts.ibmPlexSans
+										(
+											fontSize: 12,
+										),
+									),
+									Text
+									(
+										this.premiumList[index]["date"],
+										style: GoogleFonts.ibmPlexSans
+										(
+											fontWeight: FontWeight.w500,
+											fontSize: 14,
+										),
+									),
+									Column
 									(
 										crossAxisAlignment: CrossAxisAlignment.start,
 										children:
 										[
-											Wrap
+											this.premiumList[index]["paid"] == "" ? SizedBox.shrink() : Container
 											(
-												children:
-												[
-													Text
-													(
-														this.premiumList[index]["league"],
-														style: GoogleFonts.ibmPlexSans
-														(
-															fontSize: 14,
-														),
-													)
-												],
-											),
-											Wrap
-											(
-												children:
-												[
-													Text
-													(
-														this.premiumList[index]["matchh"],
-														style: GoogleFonts.ibmPlexSans
-														(
-															fontWeight: FontWeight.w500,
-															fontSize: 14,
-														),
-													)
-												],
-											),
-											Text
-											(
-												this.premiumList[index]["tip"],
-												style: GoogleFonts.ibmPlexSans
+												padding: EdgeInsets.all(5),
+												decoration: BoxDecoration
 												(
-													fontSize: 12,
+													borderRadius: BorderRadius.circular(15),
+													color: Color(int.parse("0xff07AFFB"))
 												),
-											),
-											Row
-											(
-												mainAxisAlignment: MainAxisAlignment.start,
-												children:
-												[
-													Text
-													(
-														this.premiumList[index]["date"],
-														style: GoogleFonts.ibmPlexSans
-														(
-															fontWeight: FontWeight.w500,
-															fontSize: 14,
-														),
-													),
-													SizedBox(width: 5),
-												]
-											),
-											SizedBox(height: 25)
-										]
-									)
-								)
-							),
-							Positioned
-							(
-								bottom: 45,
-								left: 40,
-								child: Row
-								(
-									children: 
-									[
-										this.premiumList[index]["paid"] == "" ? SizedBox.shrink() : Container
-										(
-											padding: EdgeInsets.all(5),
-											decoration: BoxDecoration
-											(
-												borderRadius: BorderRadius.circular(15),
-												color: Color(int.parse("0xff07AFFB"))
-											),
-											child: Text
-											(
-												this.premiumList[index]["paid"],
-												style: GoogleFonts.ibmPlexSans
+												child: Text
 												(
-													fontWeight: FontWeight.w500,
-													color: Colors.white,
-													fontSize: 12,
-												),
-											),
-										),
-										SizedBox(width: 5),
-										this.premiumList[index]["status"] == "" ? SizedBox.shrink() : Container
-										(
-											padding: EdgeInsets.all(5),
-											decoration: BoxDecoration
-											(
-												borderRadius: BorderRadius.circular(15),
-												color: Colors.green
-											),
-											child: Text
-											(
-												this.premiumList[index]["status"],
-												style: GoogleFonts.ibmPlexSans
-												(
-													fontWeight: FontWeight.w500,
-													color: Colors.white,
-													fontSize: 12,
-												),
-											),
-										)
-									],
-								)
-							),
-							Positioned
-							(
-								child: Column
-								(
-									children:
-									[
-										Container
-										(
-											margin: EdgeInsets.only(left: 5, bottom: 5),
-											height: 70,
-											width: 70,
-											child: Image.network(this.premiumList[index]["imgURL"])
-										),
-										Container
-										(
-											margin: EdgeInsets.only(left: 25, bottom: 5),
-											height: 70,
-											width: 70,
-										child: Flexible
-										(
-											child: 
-											// [
-												Text
-												(
-													this.premiumList[index]["odd"],
+													this.premiumList[index]["paid"],
 													style: GoogleFonts.ibmPlexSans
 													(
-														fontSize: 14,
-													)
-												)
-											// ],
-										)
-										)
-									]
-								)
+														fontWeight: FontWeight.w500,
+														color: Colors.white,
+														fontSize: 12,
+													),
+												),
+											),
+											SizedBox(height: 5),
+											this.premiumList[index]["status"] == "" ? SizedBox.shrink() : Container
+											(
+												padding: EdgeInsets.all(5),
+												decoration: BoxDecoration
+												(
+													borderRadius: BorderRadius.circular(15),
+													color: Colors.green
+												),
+												child: Text
+												(
+													this.premiumList[index]["status"],
+													style: GoogleFonts.ibmPlexSans
+													(
+														fontWeight: FontWeight.w500,
+														color: Colors.white,
+														fontSize: 12,
+													),
+												),
+											)
+										],
+									),
+								],
 							)
-						]
+						)
 					);
 				}
 			)
 		);
+	}
+
+	List<Column> rows()
+	{
+		List <Column> rows = [];
+
+		for(int index = 0; index < this.premiumList.length; index++)
+		{
+			rows.add
+			(
+				Column
+				(
+					children:
+					[
+						Card
+						(
+							elevation: 5,
+							child: ListTile
+							(
+								leading: Image.network(premiumList[index]["imgURL"]),
+								title: Text
+								(
+									this.premiumList[index]["league"],
+									style: GoogleFonts.ibmPlexSans
+									(
+										fontSize: 14,
+									),
+								),
+								subtitle: Column
+								(
+									crossAxisAlignment: CrossAxisAlignment.start,
+									children:
+									[
+										Linkify
+										(
+											onOpen: (link) async 
+											{
+												if (await canLaunch(link.url)) {
+												await launch(link.url);
+											} else {
+												throw 'Could not launch $link';
+											}
+										},
+										text: this.premiumList[index]["matchh"].toString(),
+										style: GoogleFonts.ibmPlexSans
+										(
+											color: Colors.grey,
+											fontWeight: FontWeight.w500,
+											fontSize: 14,
+										)
+										// linkStyle: TextStyle(color: Colors.red),
+										),
+										Text
+										(
+											this.premiumList[index]["tip"],
+											style: GoogleFonts.ibmPlexSans
+											(
+												fontSize: 12,
+											),
+										),
+										Text
+										(
+											this.premiumList[index]["date"],
+											style: GoogleFonts.ibmPlexSans
+											(
+												fontWeight: FontWeight.w500,
+												fontSize: 14,
+											),
+										),
+										Column
+										(
+											crossAxisAlignment: CrossAxisAlignment.start,
+											children:
+											[
+												this.premiumList[index]["paid"] == "" ? SizedBox.shrink() : Container
+												(
+													padding: EdgeInsets.all(5),
+													decoration: BoxDecoration
+													(
+														borderRadius: BorderRadius.circular(15),
+														color: Color(int.parse("0xff07AFFB"))
+													),
+													child: Text
+													(
+														this.premiumList[index]["paid"],
+														style: GoogleFonts.ibmPlexSans
+														(
+															fontWeight: FontWeight.w500,
+															color: Colors.white,
+															fontSize: 12,
+														),
+													),
+												),
+												SizedBox(height: 5),
+												this.premiumList[index]["status"] == "" ? SizedBox.shrink() : Container
+												(
+													padding: EdgeInsets.all(5),
+													decoration: BoxDecoration
+													(
+														borderRadius: BorderRadius.circular(15),
+														color: Colors.green
+													),
+													child: Text
+													(
+														this.premiumList[index]["status"],
+														style: GoogleFonts.ibmPlexSans
+														(
+															fontWeight: FontWeight.w500,
+															color: Colors.white,
+															fontSize: 12,
+														),
+													),
+												)
+											],
+										),
+									],
+								)
+							)
+						)
+					],
+				)
+			);
+		}
+
+		return rows;
+	}
+
+	_launchUrl(link) async
+	{
+  		var url = link.toString();
+
+  		if (await canLaunch(url))
+		{
+    		await launch(url);
+		}
+		else
+		{
+    		throw 'Could not launch $url';
+  		}
 	}
 }

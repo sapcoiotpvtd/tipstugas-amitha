@@ -9,16 +9,18 @@ import 'package:webview_flutter/webview_flutter.dart';
 class WebViewScreen extends StatefulWidget
 {
 	final url;
-	WebViewScreen(this.url);
+	final title;
+	WebViewScreen(this.url, this.title);
 
 	@override
-	_WebViewScreenState createState() => _WebViewScreenState(this.url);
+	_WebViewScreenState createState() => _WebViewScreenState(this.url, this.title);
 }
 
 class _WebViewScreenState extends State<WebViewScreen>
 {
 	final url;
-	_WebViewScreenState(this.url);
+	final title;
+	_WebViewScreenState(this.url, this.title);
 
 	final Completer<WebViewController> _controller = Completer<WebViewController>();
 	late WebViewController controllerGlobal;
@@ -45,7 +47,7 @@ class _WebViewScreenState extends State<WebViewScreen>
 	{
     	return Scaffold
 		(
-			appBar: appBar(isOdds ? "Oddspedia" : "Betting Guide", context, false),
+			appBar: appBar(this.title, context, false),
         	body: Column
 			(
           		children:

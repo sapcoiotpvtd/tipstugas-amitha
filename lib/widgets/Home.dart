@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'dart:io';
 
@@ -13,6 +14,7 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:lottie/lottie.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tipstugas/Server.dart';
+import 'package:tipstugas/global.dart';
 import 'package:tipstugas/widgets/DirRecovered.dart';
 import 'package:tipstugas/widgets/FreeTips.dart';
 import 'package:tipstugas/widgets/Gudie.dart';
@@ -27,6 +29,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 enum Availability { LOADING, AVAILABLE, UNAVAILABLE }
+
+enum BestTutorSite { monthly, threemonths}
 
 class HomeScreen extends StatefulWidget
 {
@@ -60,6 +64,8 @@ class _HomeScreenState extends State<HomeScreen>
 	final InAppReview inAppReview = InAppReview.instance;
 	final InAppPurchase _inAppPurchase = InAppPurchase.instance;
 
+	final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
 	late StreamSubscription<List<PurchaseDetails>> _subscription;
 
 	 List<IAPItem> items = [];
@@ -67,42 +73,31 @@ class _HomeScreenState extends State<HomeScreen>
 	final List<String> _productLists =  ['threemonths','monthly',];
 	List<PurchasedItem> _purchases = [];
 	List<IAPItem> _items = [];
-	
+
+	var _site;
 
 	@override
 	void initState()
 	{
     	super.initState();
 		initPlatformState();
-		_getPurchaseHistory();
 		getItems();
 		loadData();
   	}
 
-	loadData()
+	loadData() async
 	{
 		getImages();
 		getPremiumTips();
 		getFreeTips();
 		getStrategyTips();
 		getResumoTips();
-
-		print("got it");
+		await _getPurchaseHistory();
 	}
 
-	void getItems() async 
+	void getItems() async
 	{
-  		List<IAPItem> items = await FlutterInappPurchase.instance.getProducts(_productLists);
-
-		  print(items);
-		  print("PLAY CONSOLE ITEMS");
-  		// for (var item in items)
-  		// {
-      	// 	this._items.add(item);
-	  	// 	print("----------------------");
-    	// 	print('${item.toString()}');
-    	// 	// this._items.add(item);
-  		// }
+  		items = await FlutterInappPurchase.instance.getProducts(_productLists);
 	}
 
 	@override
@@ -167,26 +162,32 @@ class _HomeScreenState extends State<HomeScreen>
 		});
 	}
 
-	void _requestPurchase() async
+	void _requestPurchase(item) async
 	{
+
 		try
 		{
-			var x = FlutterInappPurchase.instance.requestPurchase("monthly");
+			await FlutterInappPurchase.instance.requestSubscription(item.toString()).then((value)
+			{
+				print(value);
+				_scaffoldKey.currentState!.showSnackBar(SnackBar(content: Text(value.toString())));
+			});
+
+			await _getPurchaseHistory();
 		}
 		catch(e)
 		{
 			print(e);
+			_scaffoldKey.currentState!.showSnackBar(SnackBar(content: Text(e.toString())));
 		}
 	}
 
-	void _getPurchaseHistory() async
+	_getPurchaseHistory() async
 	{
-		print("PURCHASE HISTORY");
-
     	List<PurchasedItem>? items = await FlutterInappPurchase.instance.getPurchaseHistory();
     	for (var item in items!)
 		{
-      		print('${item.toString()}');
+			print(item);
       		this._purchases.add(item);
     	}
 
@@ -194,12 +195,12 @@ class _HomeScreenState extends State<HomeScreen>
 		{
 			// this._items = [];
 			this._purchases = items;
+			print(this._purchases);
     	});
   	}
 
 	Widget build(BuildContext context)
 	{
-		getItems();
 		return RefreshIndicator
 		(
 			onRefresh: ()
@@ -211,6 +212,7 @@ class _HomeScreenState extends State<HomeScreen>
 			},
 			child: Scaffold
 			(
+				key: _scaffoldKey,
 				backgroundColor: Colors.blue[100],
 				appBar: appBarImage == null ? AppBar(backgroundColor: Colors.grey[400]) : appBar(appBarImage["hometext"], context, true),
 				body: Container
@@ -218,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen>
 					color: Colors.blue[100],
 					child: isLoading ? Center(child: CircularProgressIndicator()) : body(),
 				),
-				bottomNavigationBar: bottomNavigationBar(context),
+				// bottomNavigationBar: bottomNavigationBar(context),
 			)
 		);
 	}
@@ -285,15 +287,16 @@ class _HomeScreenState extends State<HomeScreen>
 									),
 									onTap: ()
 									{
+											print(this._purchases.length);
+
 										switch (carouselList[index]["status"])
 										{
-											// print(carouselList[index]["status"]);
 
 											case "premium":
-												if(this._purchases == null)
+												if(this._purchases.length == 0)
 												{
 													premiumTips(context);
-												} 
+												}
 												else
 												{
 													Navigator.push(context, MaterialPageRoute(builder: (context) => PremiumTips(premiumList)));
@@ -357,63 +360,6 @@ class _HomeScreenState extends State<HomeScreen>
 		);
 	}
 
-	Widget social()
-	{
-		return Container
-		(
-			margin: EdgeInsets.only(right: 5, left: 5, bottom: 5),
-			height: 55,
-			child: ListView.builder
-			(
-				itemCount: socialMediaList.length == 0 ? 0 : socialMediaList.length,
-				scrollDirection: Axis.horizontal,
-				itemBuilder: (BuildContext context, int index)
-				{
-					return GestureDetector
-					(
-						child: Container
-						(
-							margin: EdgeInsets.only(right: 8, left: 8, bottom: 2),
-							padding: EdgeInsets.all(10),
-							decoration: BoxDecoration
-							(
-								color: Colors.white,
-								borderRadius: BorderRadius.circular(50),
-								boxShadow:
-								[
-									BoxShadow
-									(
-										color: Colors.grey.withOpacity(0.5),
-										spreadRadius: 2,
-										blurRadius: 4,
-										offset: Offset(0, 2), // changes position of shadow
-									)
-								]
-							),
-							child: Image.network
-							(
-								socialMediaList[index]["image"],
-								height: 35,
-								width: 35,
-							),
-						),
-						onTap: ()
-						{
-							if(socialMediaList[index]["status"] == false)
-							{
-								_launchUrl(socialMediaList[index]["link"]);
-							}
-							else
-							{
-								Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen(socialMediaList[index]["link"])));
-							}
-						}
-					);
-				}
-			)
-		);
-	}
-
 	Widget socialMediaIcons()
 	{
 		return Container
@@ -453,14 +399,14 @@ class _HomeScreenState extends State<HomeScreen>
 						),
 						onTap: ()
 						{
-							if(socialMediaList[0]["status"] == false)
-							{
+							// if(socialMediaList[0]["status"] == false)
+							// {
 								_launchUrl(socialMediaList[0]["link"]);
-							}
-							else
-							{
-								Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen(socialMediaList[0]["link"])));
-							}
+							// }
+							// else
+							// {
+							// 	Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen(socialMediaList[0]["link"])));
+							// }
 						}
 					),
 					GestureDetector
@@ -493,14 +439,14 @@ class _HomeScreenState extends State<HomeScreen>
 						),
 						onTap: ()
 						{
-							if(socialMediaList[1]["status"] == false)
-							{
+							// if(socialMediaList[1]["status"] == false)
+							// {
 								_launchUrl(socialMediaList[1]["link"]);
-							}
-							else
-							{
-								Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen(socialMediaList[1]["link"])));
-							}
+							// }
+							// else
+							// {
+							// 	Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen(socialMediaList[1]["link"])));
+							// }
 						}
 					),
 					GestureDetector
@@ -533,14 +479,14 @@ class _HomeScreenState extends State<HomeScreen>
 						),
 						onTap: ()
 						{
-							if(socialMediaList[2]["status"] == false)
-							{
+							// if(socialMediaList[2]["status"] == false)
+							// {
 								_launchUrl(socialMediaList[2]["link"]);
-							}
-							else
-							{
-								Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen(socialMediaList[2]["link"])));
-							}
+							// }
+							// else
+							// {
+							// 	Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen(socialMediaList[2]["link"])));
+							// }
 						}
 					),
 					GestureDetector
@@ -579,7 +525,7 @@ class _HomeScreenState extends State<HomeScreen>
 							// }
 							// else
 							// {
-								Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen("https://www.tipstugas.pt/betguideapp.html")));
+								Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen("https://www.tipstugas.pt/betguideapp.html", "Betting Guide")));
 							// }
 						}
 					),
@@ -619,7 +565,7 @@ class _HomeScreenState extends State<HomeScreen>
 							// }
 							// else
 							// {
-								Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen("https://www.tipstugas.pt/oddsapp.html")));
+								Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen("https://www.tipstugas.pt/oddsapp.html", "Oddspedia")));
 							// }
 						}
 					)
@@ -826,102 +772,115 @@ class _HomeScreenState extends State<HomeScreen>
 		AlertDialog alert = AlertDialog
 		(
 			// backgroundColor: Colors.black38,
-			content: Column
+			content: StatefulBuilder
 			(
-				mainAxisAlignment: MainAxisAlignment.center,
-				mainAxisSize: MainAxisSize.min,
-				children: <Widget>
-				[
-					Align
+            	builder: (BuildContext context, StateSetter setState)
+				{
+					return Column
 					(
-						alignment: Alignment.topRight,
-						child: IconButton
-						(
-							onPressed: () => Navigator.pop(context),
-							icon: Icon(Icons.close)
-						),
-					),
-					Text
-					(
-						"Escolha a subscrição, renova automaticamente para poder aceder ao VIP se não cancelar",
-						style: GoogleFonts.ibmPlexSans
-						(
-							fontWeight: FontWeight.w500
-						),
-					),
-					ListTile
-					(
-						title: Text("Mensal - €14.99 EU"),
-						leading: Radio
-						(
-							value: 0,
-							groupValue: val,
-							onChanged: (value)
-							{
-								// _handleRadioValueChange(int.parse(value.toString()));
-							},
-							activeColor: Colors.green,
-						),
-					),
-					ListTile
-					(
-						title: Text("Trimestral - €29.99 EU"),
-						leading: Radio
-						(
-							value: 1,
-							groupValue: val,
-							onChanged: (value)
-							{
-								// _handleRadioValueChange(int.parse(value.toString()));
-							},
-							activeColor: Colors.green,
-						),
-					),
-					Row
-					(
-						mainAxisAlignment: MainAxisAlignment.end,
-						children:
+						mainAxisAlignment: MainAxisAlignment.center,
+						mainAxisSize: MainAxisSize.min,
+						children: <Widget>
 						[
-							GestureDetector
+							Align
 							(
-								child: Text
+								alignment: Alignment.topRight,
+								child: IconButton
 								(
-									"CANCELAR",
-									style: GoogleFonts.ibmPlexSans
-									(
-										fontWeight: FontWeight.w500,
-										color: Colors.blue,
-										fontSize: 12,
-									),
+									onPressed: () => Navigator.pop(context),
+									icon: Icon(Icons.close)
 								),
-								onTap: ()
-								{
-									Navigator.pop(context);
-								}
 							),
-							SizedBox(width: 10),
-							GestureDetector
+							Text
 							(
-								child: Text
+								"scolha a subscrição, renova automaticamente para poder aceder ao PREMIUM",
+								style: GoogleFonts.ibmPlexSans
 								(
-									"CONTINUAR",
-									style: GoogleFonts.ibmPlexSans
-									(
-										fontWeight: FontWeight.w500,
-										color: Colors.blue,
-										fontSize: 12,
-									),
+									fontWeight: FontWeight.w500
 								),
-								onTap: ()
-								{
-									// _getPurchaseHistory();
-									this._requestPurchase();
-								}
+							),
+							ListTile
+							(
+          						title:  Text(items[0].title.toString().split("(")[0].toString() + " - " + items[0].price.toString()),
+								leading: Radio
+								(
+									value: items[0].productId.toString(),
+									groupValue: _site,
+									onChanged: (value)
+									{
+										setState(()
+										{
+											_site = value;
+										});
+									},
+								),
+							),
+							ListTile
+							(
+          						title:  Text(items[1].title.toString().split("(")[0].toString() + " - " + items[1].price.toString()),
+								leading: Radio
+								(
+									value: items[1].productId.toString(),
+									groupValue: _site,
+									onChanged: (value)
+									{
+										setState(() 
+										{
+											_site = value!;
+										});
+									}
+								)
+							),
+							Row
+							(
+								mainAxisAlignment: MainAxisAlignment.end,
+								children:
+								[
+									GestureDetector
+									(
+										child: Text
+										(
+											"se nao cancelar".toUpperCase(),
+											style: GoogleFonts.ibmPlexSans
+											(
+												fontWeight: FontWeight.w500,
+												color: Colors.blue,
+												fontSize: 12,
+											),
+										),
+										onTap: ()
+										{
+											Navigator.pop(context);
+										}
+									),
+									SizedBox(width: 10),
+									GestureDetector
+									(
+										child: Text
+										(
+											"CONTINUAR",
+											style: GoogleFonts.ibmPlexSans
+											(
+												fontWeight: FontWeight.w500,
+												color: Colors.blue,
+												fontSize: 12,
+											),
+										),
+										onTap: ()
+										{
+											print(_site);
+											print("SITEEEEEEEEEEEEEEEEEEEEEEE");
+											// _getPurchaseHistory();
+											this._requestPurchase(_site);
+											Navigator.pop(context);
+										}
+									)
+								],
 							)
 						],
-					)
-				],
-			),
+					);
+				}
+			)
 		);
 
 		showDialog
@@ -1089,6 +1048,7 @@ class _HomeScreenState extends State<HomeScreen>
 			bannerImage = response["banner"];
 			appBarImage = response["data"][0];
 			appBarBackgroundImage = appBarImage["homebanner"];
+			telegramData = response["setting"];
 
 			setState(() {
 			});

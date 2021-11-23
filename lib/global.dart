@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 var height;
 var width;
+var telegramData;
 
 getHeight(context)
 {

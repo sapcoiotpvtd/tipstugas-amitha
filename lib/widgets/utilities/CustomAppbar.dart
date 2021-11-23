@@ -35,14 +35,14 @@ appBar(string, context, isHome)
 				Navigator.pop(context);
 			},
 		),
-		actions: isHome ? null :
-		[
-			IconButton
-			(
-				onPressed: null,
-				icon: Icon(Icons.menu, color: Colors.white, size: 35)
-			)
-		],
+		// actions: isHome ? null :
+		// [
+		// 	IconButton
+		// 	(
+		// 		onPressed: null,
+		// 		icon: Icon(Icons.menu, color: Colors.white, size: 35)
+		// 	)
+		// ],
 		// flexibleSpace: Image
 		// (
 		// 	image: NetworkImage(appBarBackgroundImage),
