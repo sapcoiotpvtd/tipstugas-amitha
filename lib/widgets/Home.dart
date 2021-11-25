@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:fancy_shimmer_image/fancy_shimmer_image.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -71,8 +73,11 @@ class _HomeScreenState extends State<HomeScreen>
 	 List<IAPItem> items = [];
 
 	final List<String> _productLists =  ['threemonths','monthly',];
+
+	List<ProductDetails> products = [];
 	List<PurchasedItem> _purchases = [];
-	List<IAPItem> _items = [];
+
+	FirebaseMessaging? _firebaseMessaging;
 
 	var _site;
 
@@ -81,23 +86,38 @@ class _HomeScreenState extends State<HomeScreen>
 	{
     	super.initState();
 		initPlatformState();
-		getItems();
 		loadData();
+
   	}
 
 	loadData() async
 	{
+		// await Firebase.initializeApp();
+
+		// var x =  await _firebaseMessaging!.onTokenRefresh;
+
+		// print(x);
+		// _firebaseMessaging!.getToken().then((value) => print(value));
+
 		getImages();
 		getPremiumTips();
 		getFreeTips();
 		getStrategyTips();
 		getResumoTips();
+		await getItems();
 		await _getPurchaseHistory();
 	}
 
-	void getItems() async
+	Future<void> getItems() async
 	{
-  		items = await FlutterInappPurchase.instance.getProducts(_productLists);
+		const Set<String> _kIds = <String>{'monthly', 'threemonths'};
+
+		final ProductDetailsResponse response = await InAppPurchase.instance.queryProductDetails(_kIds);
+		if (response.notFoundIDs.isNotEmpty) 
+		{
+			// Handle the error.
+		}
+		products = response.productDetails;
 	}
 
 	@override
@@ -167,11 +187,19 @@ class _HomeScreenState extends State<HomeScreen>
 
 		try
 		{
-			await FlutterInappPurchase.instance.requestSubscription(item.toString()).then((value)
+			final PurchaseParam purchaseParam = PurchaseParam(productDetails: products[item]);
+			InAppPurchase.instance.buyConsumable(purchaseParam: purchaseParam).whenComplete(()
 			{
-				print(value);
-				_scaffoldKey.currentState!.showSnackBar(SnackBar(content: Text(value.toString())));
-			});
+				_scaffoldKey.currentState!.showSnackBar(SnackBar(content: Text("Sucess")));
+			} );
+
+			// From here the purchase flow will be handled by the underlying store.
+			// Updates will be delivered to the `InAppPurchase.instance.purchaseStream`.
+			// await FlutterInappPurchase.instance.requestSubscription(item.toString()).then((value)
+			// {
+			// 	print(value);
+				// _scaffoldKey.currentState!.showSnackBar(SnackBar(content: Text("Success")));
+			// });
 
 			await _getPurchaseHistory();
 		}
@@ -194,13 +222,16 @@ class _HomeScreenState extends State<HomeScreen>
     	setState(()
 		{
 			// this._items = [];
-			this._purchases = items;
+			// this._purchases = items;
 			print(this._purchases);
+
     	});
   	}
 
 	Widget build(BuildContext context)
 	{
+		getItems();
+
 		return RefreshIndicator
 		(
 			onRefresh: ()
@@ -287,8 +318,6 @@ class _HomeScreenState extends State<HomeScreen>
 									),
 									onTap: ()
 									{
-											print(this._purchases.length);
-
 										switch (carouselList[index]["status"])
 										{
 
@@ -767,7 +796,7 @@ class _HomeScreenState extends State<HomeScreen>
 
 	void premiumTips(BuildContext context)
 	{
-		var productDetails = "car";
+		int checkedValue = 0;
 
 		AlertDialog alert = AlertDialog
 		(
@@ -793,7 +822,7 @@ class _HomeScreenState extends State<HomeScreen>
 							),
 							Text
 							(
-								"scolha a subscrição, renova automaticamente para poder aceder ao PREMIUM",
+								"Escolha a subscrição, renova automaticamente para poder aceder ao PREMIUM",
 								style: GoogleFonts.ibmPlexSans
 								(
 									fontWeight: FontWeight.w500
@@ -801,32 +830,34 @@ class _HomeScreenState extends State<HomeScreen>
 							),
 							ListTile
 							(
-          						title:  Text(items[0].title.toString().split("(")[0].toString() + " - " + items[0].price.toString()),
+          						title:  Text(products[0].title.toString().split("(")[0].toString() + " - " + products[0].price.toString()),
 								leading: Radio
 								(
-									value: items[0].productId.toString(),
+									value: products[0].id.toString(),
 									groupValue: _site,
 									onChanged: (value)
 									{
 										setState(()
 										{
 											_site = value;
+											checkedValue = 0;
 										});
 									},
 								),
 							),
 							ListTile
 							(
-          						title:  Text(items[1].title.toString().split("(")[0].toString() + " - " + items[1].price.toString()),
+          						title:  Text(products[1].title.toString().split("(")[0].toString() + " - " + products[1].price.toString()),
 								leading: Radio
 								(
-									value: items[1].productId.toString(),
+									value: products[1].id.toString(),
 									groupValue: _site,
 									onChanged: (value)
 									{
 										setState(() 
 										{
 											_site = value!;
+											checkedValue = 1;
 										});
 									}
 								)
@@ -868,10 +899,7 @@ class _HomeScreenState extends State<HomeScreen>
 										),
 										onTap: ()
 										{
-											print(_site);
-											print("SITEEEEEEEEEEEEEEEEEEEEEEE");
-											// _getPurchaseHistory();
-											this._requestPurchase(_site);
+											this._requestPurchase(checkedValue);
 											Navigator.pop(context);
 										}
 									)
@@ -1028,7 +1056,6 @@ class _HomeScreenState extends State<HomeScreen>
 				setState(()
 				{
 					isLoading = false;
-					// print(resumoList);
 				});
 			}
 		}

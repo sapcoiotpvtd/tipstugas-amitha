@@ -62,7 +62,6 @@ class _WebViewScreenState extends State<WebViewScreen>
 								(
 									javascriptMode: JavascriptMode.unrestricted,
 									initialUrl: this.url,
-									// initialUrl: "https://www.tipstugas.pt/betguide.html",
 									gestureNavigationEnabled: true,
 									onWebViewCreated: (WebViewController webViewController)
 									{
@@ -85,16 +84,12 @@ class _WebViewScreenState extends State<WebViewScreen>
                       					});
                     				},
                   				),
-								//   appBar("Betting Guide", context),
-								//   _isLoading ? Center(
-								//     child: CustomLoader(color: ColorResources.COLOR_PRIMARY),
-								//   ) : SizedBox.shrink(),
                 			],
               			),
             		),
           		],
         	),
-			bottomNavigationBar: bottomNavigationBar(context),
+			// bottomNavigationBar: bottomNavigationBar(context),
     	);
   	}
 

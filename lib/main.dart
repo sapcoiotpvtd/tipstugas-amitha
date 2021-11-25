@@ -14,6 +14,7 @@ void main() async
 	WidgetsFlutterBinding.ensureInitialized();
 	FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 	SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+	await Firebase.initializeApp();
 
 	if(defaultTargetPlatform == TargetPlatform.android)
 	{
@@ -25,11 +26,28 @@ void main() async
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async
 {
-	// If you're going to use other Firebase services in the background, such as Firestore,
-	// make sure you call `initializeApp` before using other Firebase services.
-	await Firebase.initializeApp();
+	print("HAIII");
 
-	print("Handling a background message: ${message.messageId}");
+	FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification notification = message.notification;
+
+	FirebaseMessaging.instance.getToken().then((value)
+	{
+		print(value.toString());
+		print("VALUE");
+	});
+	  print(notification);
+		// showNotification(notification);
+	});
+
+	FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+		print("onMessageOpenedApp: $message");
+	});
+
+	FirebaseMessaging.onBackgroundMessage((RemoteMessage message) {
+		print("onBackgroundMessage: $message");
+	});
+
 }
 
 class MyApp extends StatelessWidget
